@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduManage - Quản lý học sinh</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --surface: #ffffff;
+      --text: #182230;
+      --muted: #6b7788;
+      --line: #e8edf3;
+      --primary: #4169e1;
+      --primary-dark: #3156c8;
+      --primary-soft: #edf2ff;
+      --green: #159b72;
+      --green-soft: #e9f8f2;
+      --orange: #d9822b;
+      --orange-soft: #fff4e8;
+      --red: #d84b58;
+      --red-soft: #fff0f1;
+      --shadow: 0 10px 30px rgba(25, 42, 70, .07);
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .app { min-height: 100vh; display: flex; }
+    .sidebar {
+      width: 248px; flex: 0 0 248px; min-height: 100vh;
+      background: #17243a; color: #dce5f3; padding: 25px 17px;
+      display: flex; flex-direction: column;
+    }
+    .brand { display: flex; align-items: center; gap: 11px; padding: 0 9px 30px; }
+    .brand-mark {
+      width: 40px; height: 40px; border-radius: 13px; background: #5278ed;
+      display: grid; place-items: center; color: white; font-size: 21px; font-weight: 800;
+      box-shadow: 0 7px 18px rgba(65,105,225,.35);
+    }
+    .brand-name { font-size: 17px; font-weight: 750; letter-spacing: -.3px; color: white; }
+    .brand-sub { color: #94a5bd; font-size: 10px; letter-spacing: 1.6px; margin-top: 3px; }
+    .nav-label { text-transform: uppercase; color: #8292aa; font-size: 10px; font-weight: 700; letter-spacing: 1.4px; padding: 0 12px; margin: 8px 0 10px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 12px; width: 100%; border: 0;
+      background: transparent; color: #b8c5d8; padding: 12px 13px; border-radius: 11px;
+      text-align: left; margin: 3px 0; font-size: 13px; font-weight: 600;
+    }
+    .nav-item .nav-icon { width: 20px; text-align: center; font-size: 16px; }
+    .nav-item.active { background: #2c3e5b; color: white; box-shadow: inset 3px 0 #7190ff; }
+    .nav-item:hover:not(.active) { background: rgba(255,255,255,.06); color: white; }
+    .sidebar-bottom { margin-top: auto; padding: 17px 10px 2px; border-top: 1px solid rgba(255,255,255,.1); }
+    .school-mini { color: white; font-size: 12px; font-weight: 650; }
+    .school-mini-sub { color: #8fa0b7; font-size: 11px; margin-top: 5px; }
+    .main { min-width: 0; flex: 1; padding: 28px 34px 38px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 18px; margin-bottom: 28px; }
+    .eyebrow { color: var(--muted); font-size: 12px; margin-bottom: 5px; }
+    h1 { margin: 0; font-size: clamp(23px, 3vw, 29px); letter-spacing: -.8px; }
+    .top-actions { display: flex; align-items: center; gap: 12px; }
+    .today { color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .avatar { width: 39px; height: 39px; border-radius: 50%; background: #e5ebff; color: #365bd0; display: grid; place-items: center; font-weight: 800; font-size: 13px; }
+    .welcome {
+      border-radius: 18px; padding: 22px 25px; color: white; margin-bottom: 22px;
+      background: linear-gradient(110deg, #3459ca 0%, #5278eb 58%, #7492f4 100%);
+      display: flex; justify-content: space-between; align-items: center; gap: 20px; overflow: hidden; position: relative;
+    }
+    .welcome::after { content: ""; position: absolute; width: 210px; height: 210px; border: 32px solid rgba(255,255,255,.08); border-radius: 50%; right: 9%; top: -120px; }
+    .welcome h2 { margin: 0 0 7px; font-size: 19px; letter-spacing: -.3px; position: relative; z-index: 1; }
+    .welcome p { margin: 0; color: #e2e9ff; font-size: 12px; position: relative; z-index: 1; }
+    .welcome-tag { position: relative; z-index: 1; border: 1px solid rgba(255,255,255,.32); background: rgba(255,255,255,.12); border-radius: 10px; padding: 9px 13px; font-size: 11px; white-space: nowrap; }
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 15px; margin-bottom: 24px; }
+    .stat-card { background: var(--surface); padding: 17px 18px; border: 1px solid var(--line); border-radius: 15px; box-shadow: 0 4px 15px rgba(25,42,70,.025); }
+    .stat-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .stat-label { color: var(--muted); font-size: 11px; font-weight: 600; }
+    .stat-icon { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; font-size: 16px; }
+    .stat-icon.blue { background: var(--primary-soft); color: var(--primary); }
+    .stat-icon.green { background: var(--green-soft); color: var(--green); }
+    .stat-icon.orange { background: var(--orange-soft); color: var(--orange); }
+    .stat-icon.pink { background: #fff0f5; color: #d65d91; }
+    .stat-value { font-size: 25px; font-weight: 800; letter-spacing: -.7px; margin-top: 9px; }
+    .stat-note { color: #97a1af; font-size: 10px; margin-top: 2px; }
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .panel-head { padding: 20px 21px 16px; display: flex; justify-content: space-between; align-items: center; gap: 15px; }
+    .panel-title { font-size: 16px; font-weight: 750; margin: 0; }
+    .panel-sub { font-size: 11px; color: var(--muted); margin-top: 5px; }
+    .panel-tools { display: flex; gap: 9px; flex-wrap: wrap; }
+    .btn { border: 1px solid var(--line); color: #445064; background: white; border-radius: 9px; padding: 9px 12px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 7px; transition: .15s ease; }
+    .btn:hover { border-color: #c6d1e2; background: #f9fbff; }
+    .btn-primary { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 5px 12px rgba(65,105,225,.18); }
+    .btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+    .btn-danger { color: var(--red); border-color: #f4d5d8; background: #fffafb; }
+    .filters { padding: 0 21px 16px; display: flex; gap: 10px; align-items: center; }
+    .search-wrap { flex: 1; position: relative; min-width: 180px; }
+    .search-wrap span { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a0b1; font-size: 14px; }
+    .field-control { width: 100%; border: 1px solid #e4e9f0; background: #fbfcfe; color: var(--text); border-radius: 9px; padding: 10px 12px; font-size: 11px; outline: none; }
+    .search-wrap .field-control { padding-left: 35px; }
+    .field-control:focus { border-color: #8da5f5; box-shadow: 0 0 0 3px rgba(65,105,225,.09); background: white; }
+    select.field-control { min-width: 155px; width: auto; }
+    .table-wrap { overflow-x: auto; border-top: 1px solid var(--line); }
+    table { width: 100%; border-collapse: collapse; min-width: 760px; }
+    thead th { background: #fafbfd; color: #8994a4; text-align: left; font-size: 10px; font-weight: 750; letter-spacing: .55px; text-transform: uppercase; padding: 12px 16px; white-space: nowrap; }
+    tbody td { border-top: 1px solid #eff2f6; padding: 13px 16px; font-size: 11px; color: #4e5a6b; white-space: nowrap; }
+    tbody tr:hover { background: #fbfcff; }
+    .student-cell { display: flex; align-items: center; gap: 10px; }
+    .student-avatar { width: 33px; height: 33px; border-radius: 10px; display: grid; place-items: center; font-size: 11px; font-weight: 800; color: #4565c9; background: #edf1ff; flex: 0 0 auto; }
+    .student-name { color: #253145; font-size: 11px; font-weight: 750; }
+    .student-id { color: #9aa4b1; font-size: 10px; margin-top: 3px; }
+    .class-pill { display: inline-block; background: #eff3ff; color: #4966c7; border-radius: 6px; padding: 5px 8px; font-size: 10px; font-weight: 750; }
+    .gender-pill { display: inline-block; border-radius: 6px; padding: 5px 8px; font-size: 10px; font-weight: 650; }
+    .gender-m { background: #edf5ff; color: #4778bd; }
+    .gender-f { background: #fff0f5; color: #c75e8c; }
+    .actions { display: flex; align-items: center; gap: 5px; }
+    .icon-btn { width: 28px; height: 28px; display: grid; place-items: center; border: 1px solid transparent; border-radius: 7px; background: transparent; color: #8d98a8; font-size: 13px; }
+    .icon-btn:hover { color: var(--primary); background: var(--primary-soft); }
+    .icon-btn.delete:hover { color: var(--red); background: var(--red-soft); }
+    .table-footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 13px 21px; color: #8b96a5; font-size: 10px; }
+    .empty { text-align: center; padding: 42px 15px; color: #909bab; font-size: 12px; }
+    .empty strong { display: block; color: #526075; margin-bottom: 5px; font-size: 13px; }
+    .class-section { margin-top: 22px; }
+    .class-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; padding: 0 21px 20px; }
+    .class-card { border: 1px solid var(--line); border-radius: 12px; padding: 14px; background: #fcfdff; }
+    .class-card-top { display: flex; align-items: center; justify-content: space-between; }
+    .class-name { font-size: 13px; font-weight: 800; color: #34425a; }
+    .class-count { color: var(--primary); font-size: 18px; font-weight: 800; margin-top: 12px; }
+    .class-caption { color: #98a2b0; font-size: 10px; margin-top: 2px; }
+    .class-dot { width: 8px; height: 8px; border-radius: 50%; background: #6e8aee; }
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(17,27,44,.48); display: none; align-items: center; justify-content: center; padding: 18px; z-index: 10; }
+    .modal-backdrop.show { display: flex; }
+    .modal { width: min(560px, 100%); max-height: 92vh; overflow: auto; background: white; border-radius: 17px; box-shadow: 0 25px 80px rgba(10,20,40,.25); }
+    .modal-head { padding: 20px 22px 15px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+    .modal-head h3 { margin: 0; font-size: 16px; }
+    .modal-close { border: 0; background: #f2f4f8; color: #657185; border-radius: 8px; width: 29px; height: 29px; font-size: 17px; }
+    .form-grid { padding: 19px 22px 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+    .form-group { min-width: 0; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label { display: block; font-size: 10px; color: #667286; font-weight: 750; margin: 0 0 6px; }
+    .form-group .field-control { font-size: 12px; padding: 10px 11px; }
+    .form-hint { color: #98a2b0; font-size: 10px; margin-top: 5px; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; padding: 16px 22px 21px; }
+    .toast { position: fixed; right: 22px; bottom: 22px; z-index: 20; background: #1d2d45; color: white; padding: 12px 16px; border-radius: 10px; box-shadow: var(--shadow); font-size: 12px; opacity: 0; transform: translateY(10px); pointer-events: none; transition: .2s ease; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .mobile-menu { display: none; }
+    @media (max-width: 1050px) { .sidebar { width: 210px; flex-basis: 210px; } .main { padding: 24px; } .stats { grid-template-columns: repeat(2, 1fr); } .class-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 720px) {
+      .app { display: block; }
+      .sidebar { width: 100%; min-height: auto; padding: 12px 14px; flex-direction: row; align-items: center; justify-content: space-between; }
+      .brand { padding: 0; } .brand-mark { width: 35px; height: 35px; } .brand-name { font-size: 14px; }
+      .sidebar nav, .sidebar-bottom { display: none; }
+      .mobile-menu { display: block; border: 1px solid rgba(255,255,255,.2); color: white; background: transparent; border-radius: 8px; padding: 7px 10px; font-size: 11px; }
+      .main { padding: 21px 14px 30px; }
+      .topbar { margin-bottom: 19px; } .today { display: none; }
+      .welcome { padding: 18px; } .welcome-tag { display: none; }
+      .stats { gap: 9px; } .stat-card { padding: 13px; } .stat-value { font-size: 21px; }
+      .panel-head { align-items: flex-start; flex-direction: column; padding: 17px 15px 13px; }
+      .panel-tools { width: 100%; } .panel-tools .btn { flex: 1; }
+      .filters { padding: 0 15px 13px; flex-wrap: wrap; } .search-wrap { flex-basis: 100%; }
+      select.field-control { flex: 1; }
+      .class-grid { padding: 0 15px 16px; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      .table-footer { padding: 12px 15px; }
+    }
+    @media (max-width: 390px) { .stats { grid-template-columns: 1fr 1fr; } .form-grid { grid-template-columns: 1fr; } .form-group.full { grid-column: auto; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">E</div>
+        <div><div class="brand-name">EduManage</div><div class="brand-sub">SCHOOL MANAGEMENT</div></div>
+      </div>
+      <nav>
+        <div class="nav-label">MENU CHÍNH</div>
+        <button class="nav-item active" type="button" onclick="document.getElementById('overview').scrollIntoView({behavior:'smooth'})"><span class="nav-icon">▦</span> Tổng quan</button>
+        <button class="nav-item" type="button" onclick="document.getElementById('studentPanel').scrollIntoView({behavior:'smooth'})"><span class="nav-icon">♙</span> Học sinh</button>
+        <button class="nav-item" type="button" onclick="document.getElementById('classPanel').scrollIntoView({behavior:'smooth'})"><span class="nav-icon">▤</span> Lớp học</button>
+      </nav>
+      <div class="sidebar-bottom"><div class="school-mini">TRƯỜNG HỌC</div><div class="school-mini-sub">Hệ thống quản lý nội bộ</div></div>
+      <button class="mobile-menu" type="button" onclick="document.getElementById('studentPanel').scrollIntoView({behavior:'smooth'})">☰ Học sinh</button>
+    </aside>
+
+    <main class="main">
+      <header class="topbar" id="overview">
+        <div><div class="eyebrow">BẢNG ĐIỀU KHIỂN / QUẢN LÝ ĐÀO TẠO</div><h1>Quản lý học sinh</h1></div>
+        <div class="top-actions"><div class="today" id="todayText"></div><div class="avatar">AD</div></div>
+      </header>
+
+      <section class="welcome">
+        <div><h2>Xin chào, Quản trị viên! 👋</h2><p>Theo dõi thông tin học sinh và tình hình các lớp học trong trường.</p></div>
+        <div class="welcome-tag">✦ HỆ THỐNG QUẢN LÝ HỌC SINH</div>
+      </section>
+
+      <section class="stats" aria-label="Thống kê tổng quan">
+        <article class="stat-card"><div class="stat-top"><span class="stat-label">TỔNG HỌC SINH</span><span class="stat-icon blue">♙</span></div><div class="stat-value" id="totalStudents">0</div><div class="stat-note">Tất cả học sinh trong trường</div></article>
+        <article class="stat-card"><div class="stat-top"><span class="stat-label">TỔNG SỐ LỚP</span><span class="stat-icon green">▤</span></div><div class="stat-value" id="totalClasses">0</div><div class="stat-note">Các lớp đang được quản lý</div></article>
+        <article class="stat-card"><div class="stat-top"><span class="stat-label">HỌC SINH NAM</span><span class="stat-icon blue">♂</span></div><div class="stat-value" id="maleStudents">0</div><div class="stat-note">Theo dữ liệu đã nhập</div></article>
+        <article class="stat-card"><div class="stat-top"><span class="stat-label">HỌC SINH NỮ</span><span class="stat-icon pink">♀</span></div><div class="stat-value" id="femaleStudents">0</div><div class="stat-note">Theo dữ liệu đã nhập</div></article>
+      </section>
+
+      <section class="panel" id="studentPanel">
+        <div class="panel-head">
+          <div><h2 class="panel-title">Danh sách học sinh</h2><div class="panel-sub">Quản lý hồ sơ học sinh theo từng lớp</div></div>
+          <div class="panel-tools">
+            <button class="btn" type="button" id="exportBtn">⇩ Xuất Excel (CSV)</button>
+            <button class="btn btn-primary" type="button" id="addStudentBtn">＋ Thêm học sinh</button>
+          </div>
+        </div>
+        <div class="filters">
+          <div class="search-wrap"><span>⌕</span><input class="field-control" id="searchInput" type="search" placeholder="Tìm theo tên hoặc mã học sinh..." /></div>
+          <select class="field-control" id="classFilter" aria-label="Lọc theo lớp"><option value="all">Tất cả các lớp</option></select>
+          <select class="field-control" id="genderFilter" aria-label="Lọc theo giới tính"><option value="all">Tất cả giới tính</option><option value="Nam">Nam</option><option value="Nữ">Nữ</option></select>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>HỌC SINH</th><th>GIỚI TÍNH</th><th>NGÀY SINH</th><th>LỚP</th><th>SỐ ĐIỆN THOẠI</th><th>THAO TÁC</th></tr></thead>
+            <tbody id="studentTableBody"></tbody>
+          </table>
+        </div>
+        <div class="table-footer"><span id="resultCount">Hiển thị 0 học sinh</span><span>Dữ liệu được lưu tự động trên trình duyệt</span></div>
+      </section>
+
+      <section class="panel class-section" id="classPanel">
+        <div class="panel-head">
+          <div><h2 class="panel-title">Danh sách lớp học</h2><div class="panel-sub">Số lượng học sinh trong từng lớp</div></div>
+          <div class="panel-tools"><button class="btn btn-primary" type="button" id="addClassBtn">＋ Thêm lớp mới</button></div>
+        </div>
+        <div class="class-grid" id="classGrid"></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="studentModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+      <div class="modal-head"><h3 id="modalTitle">Thêm học sinh mới</h3><button class="modal-close" type="button" id="closeModalBtn" aria-label="Đóng">×</button></div>
+      <form id="studentForm">
+        <div class="form-grid">
+          <div class="form-group"><label for="studentCode">Mã học sinh *</label><input class="field-control" id="studentCode" required maxlength="20" placeholder="VD: HS001" /></div>
+          <div class="form-group"><label for="studentName">Họ và tên *</label><input class="field-control" id="studentName" required maxlength="80" placeholder="Nhập họ và tên" /></div>
+          <div class="form-group"><label for="studentGender">Giới tính *</label><select class="field-control" id="studentGender" required><option value="Nam">Nam</option><option value="Nữ">Nữ</option></select></div>
+          <div class="form-group"><label for="studentDob">Ngày sinh *</label><input class="field-control" id="studentDob" type="date" required /></div>
+          <div class="form-group"><label for="studentClass">Lớp *</label><select class="field-control" id="studentClass" required></select></div>
+          <div class="form-group"><label for="studentPhone">Số điện thoại</label><input class="field-control" id="studentPhone" type="tel" maxlength="20" placeholder="Số điện thoại liên hệ" /></div>
+          <div class="form-group full"><label for="studentAddress">Địa chỉ</label><input class="field-control" id="studentAddress" maxlength="160" placeholder="Địa chỉ của học sinh" /></div>
+          <div class="form-group full"><label for="studentNote">Ghi chú</label><textarea class="field-control" id="studentNote" rows="2" maxlength="300" placeholder="Thông tin bổ sung (không bắt buộc)"></textarea></div>
+        </div>
+        <div class="modal-actions"><button class="btn" type="button" id="cancelModalBtn">Hủy</button><button class="btn btn-primary" type="submit">Lưu thông tin</button></div>
+      </form>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const STORAGE_KEY = 'edumanage_students_v1';
+    const CLASS_KEY = 'edumanage_classes_v1';
+
+    const initialClasses = ['10A1', '10A2', '11A1', '11A2', '12A1'];
+    const initialStudents = [
+      {id:1, code:'HS001', name:'Nguyễn Minh Anh', gender:'Nữ', dob:'2009-03-12', className:'10A1', phone:'0912345678', address:'Dĩ An, Bình Dương', note:''},
+      {id:2, code:'HS002', name:'Trần Quốc Bảo', gender:'Nam', dob:'2009-07-21', className:'10A1', phone:'0987654321', address:'Thủ Đức, TP.HCM', note:''},
+      {id:3, code:'HS003', name:'Lê Hoàng Nam', gender:'Nam', dob:'2009-01-08', className:'10A1', phone:'0901122334', address:'Dĩ An, Bình Dương', note:''},
+      {id:4, code:'HS004', name:'Phạm Ngọc Hà', gender:'Nữ', dob:'2009-11-15', className:'10A2', phone:'0933445566', address:'Biên Hòa, Đồng Nai', note:''},
+      {id:5, code:'HS005', name:'Võ Thành Đạt', gender:'Nam', dob:'2009-05-02', className:'10A2', phone:'', address:'', note:''},
+      {id:6, code:'HS006', name:'Đặng Thảo Vy', gender:'Nữ', dob:'2008-09-18', className:'11A1', phone:'0977001122', address:'TP.HCM', note:''},
+      {id:7, code:'HS007', name:'Bùi Anh Khoa', gender:'Nam', dob:'2008-12-03', className:'11A1', phone:'', address:'', note:''},
+      {id:8, code:'HS008', name:'Ngô Khánh Linh', gender:'Nữ', dob:'2008-04-27', className:'11A2', phone:'0966112233', address:'Dĩ An, Bình Dương', note:''},
+      {id:9, code:'HS009', name:'Huỳnh Gia Huy', gender:'Nam', dob:'2007-06-09', className:'12A1', phone:'', address:'', note:''}
+    ];
+
+    function loadData(key, fallback) {
+      try {
+        const value = localStorage.getItem(key);
+        return value ? JSON.parse(value) : fallback;
+      } catch (error) {
+        console.warn('Không thể đọc dữ liệu đã lưu:', error);
+        return fallback;
+      }
+    }
+    let classes = loadData(CLASS_KEY, initialClasses);
+    let students = loadData(STORAGE_KEY, initialStudents);
+    let editingId = null;
+
+    const $ = (id) => document.getElementById(id);
+    const escapeHTML = (value) => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+    const saveData = () => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
+      localStorage.setItem(CLASS_KEY, JSON.stringify(classes));
+    };
+    const initials = (name) => name.trim().split(/\s+/).slice(-2).map(word => word[0] || '').join('').toUpperCase();
+    const formatDate = (date) => {
+      if (!date) return '—';
+      const parts = date.split('-');
+      return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : date;
+    };
+    const sortClasses = () => classes.sort((a,b) => a.localeCompare(b, 'vi', {numeric:true}));
+
+    function renderClassOptions() {
+      sortClasses();
+      const currentFilter = $('classFilter').value || 'all';
+      $('classFilter').innerHTML = '<option value="all">Tất cả các lớp</option>' + classes.map(c => `<option value="${escapeHTML(c)}">Lớp ${escapeHTML(c)}</option>`).join('');
+      $('classFilter').value = classes.includes(currentFilter) ? currentFilter : 'all';
+      const selected = $('studentClass').value;
+      $('studentClass').innerHTML = classes.map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
+      if (classes.includes(selected)) $('studentClass').value = selected;
+    }
+
+    function getFilteredStudents() {
+      const keyword = $('searchInput').value.trim().toLocaleLowerCase('vi');
+      const classValue = $('classFilter').value;
+      const genderValue = $('genderFilter').value;
+      return students.filter(student => {
+        const matchesKeyword = !keyword || student.name.toLocaleLowerCase('vi').includes(keyword) || student.code.toLocaleLowerCase('vi').includes(keyword);
+        const matchesClass = classValue === 'all' || student.className === classValue;
+        const matchesGender = genderValue === 'all' || student.gender === genderValue;
+        return matchesKeyword && matchesClass && matchesGender;
+      }).sort((a,b) => a.name.localeCompare(b.name, 'vi'));
+    }
+
+    function renderStats() {
+      $('totalStudents').textContent = students.length;
+      $('totalClasses').textContent = classes.length;
+      $('maleStudents').textContent = students.filter(s => s.gender === 'Nam').length;
+      $('femaleStudents').textContent = students.filter(s => s.gender === 'Nữ').length;
+    }
+
+    function renderTable() {
+      const filtered = getFilteredStudents();
+      const body = $('studentTableBody');
+      if (!filtered.length) {
+        body.innerHTML = '<tr><td colspan="6"><div class="empty"><strong>Không tìm thấy học sinh</strong>Thử thay đổi từ khóa hoặc bộ lọc của bạn.</div></td></tr>';
+      } else {
+        body.innerHTML = filtered.map(student => `
+          <tr>
+            <td><div class="student-cell"><div class="student-avatar">${escapeHTML(initials(student.name))}</div><div><div class="student-name">${escapeHTML(student.name)}</div><div class="student-id">${escapeHTML(student.code)}</div></div></div></td>
+            <td><span class="gender-pill ${student.gender === 'Nam' ? 'gender-m' : 'gender-f'}">${escapeHTML(student.gender)}</span></td>
+            <td>${escapeHTML(formatDate(student.dob))}</td>
+            <td><span class="class-pill">${escapeHTML(student.className)}</span></td>
+            <td>${escapeHTML(student.phone || '—')}</td>
+            <td><div class="actions"><button class="icon-btn" type="button" title="Chỉnh sửa" aria-label="Chỉnh sửa ${escapeHTML(student.name)}" onclick="editStudent(${student.id})">✎</button><button class="icon-btn delete" type="button" title="Xóa" aria-label="Xóa ${escapeHTML(student.name)}" onclick="deleteStudent(${student.id})">⌫</button></div></td>
+          </tr>`).join('');
+      }
+      $('resultCount').textContent = `Hiển thị ${filtered.length} / ${students.length} học sinh`;
+    }
+
+    function renderClasses() {
+      $('classGrid').innerHTML = classes.map(className => {
+        const count = students.filter(s => s.className === className).length;
+        return `<article class="class-card"><div class="class-card-top"><span class="class-name">Lớp ${escapeHTML(className)}</span><span class="class-dot"></span></div><div class="class-count">${count}</div><div class="class-caption">học sinh</div></article>`;
+      }).join('') || '<div class="empty">Chưa có lớp học nào.</div>';
+    }
+
+    function renderAll() { renderClassOptions(); renderStats(); renderTable(); renderClasses(); }
+
+    function showToast(message) {
+      const toast = $('toast'); toast.textContent = message; toast.classList.add('show');
+      clearTimeout(showToast.timer); showToast.timer = setTimeout(() => toast.classList.remove('show'), 2600);
+    }
+
+    function openModal(student = null) {
+      if (!classes.length) { showToast('Bạn cần tạo lớp trước khi thêm học sinh.'); return; }
+      editingId = student ? student.id : null;
+      $('modalTitle').textContent = student ? 'Cập nhật thông tin học sinh' : 'Thêm học sinh mới';
+      $('studentForm').reset();
+      renderClassOptions();
+      if (student) {
+        $('studentCode').value = student.code;
+        $('studentName').value = student.name;
+        $('studentGender').value = student.gender;
+        $('studentDob').value = student.dob;
+        $('studentClass').value = student.className;
+        $('studentPhone').value = student.phone || '';
+        $('studentAddress').value = student.address || '';
+        $('studentNote').value = student.note || '';
+      } else {
+        $('studentClass').value = $('classFilter').value !== 'all' ? $('classFilter').value : classes[0];
+      }
+      $('studentModal').classList.add('show');
+      setTimeout(() => $('studentCode').focus(), 30);
+    }
+
+    function closeModal() { $('studentModal').classList.remove('show'); editingId = null; }
+    function editStudent(id) {
+      const student = students.find(s => s.id === id);
+      if (student) openModal(student);
+    }
+    function deleteStudent(id) {
+      const student = students.find(s => s.id === id);
+      if (!student) return;
+      if (confirm(`Bạn có chắc muốn xóa học sinh ${student.name} (${student.code})?`)) {
+        students = students.filter(s => s.id !== id); saveData(); renderAll(); showToast('Đã xóa học sinh.');
+      }
+    }
+    window.editStudent = editStudent;
+    window.deleteStudent = deleteStudent;
+
+    $('studentForm').addEventListener('submit', (event) => {
+      event.preventDefault();
+      const student = {
+        id: editingId ?? Date.now(),
+        code: $('studentCode').value.trim(),
+        name: $('studentName').value.trim(),
+        gender: $('studentGender').value,
+        dob: $('studentDob').value,
+        className: $('studentClass').value,
+        phone: $('studentPhone').value.trim(),
+        address: $('studentAddress').value.trim(),
+        note: $('studentNote').value.trim()
+      };
+      if (!student.code || !student.name || !student.dob || !student.className) {
+        showToast('Vui lòng điền đầy đủ các trường bắt buộc.'); return;
+      }
+      const duplicate = students.some(s => s.code.toLocaleLowerCase() === student.code.toLocaleLowerCase() && s.id !== editingId);
+      if (duplicate) { alert('Mã học sinh này đã tồn tại. Vui lòng sử dụng mã khác.'); $('studentCode').focus(); return; }
+      if (editingId !== null) {
+        students = students.map(s => s.id === editingId ? student : s);
+        showToast('Đã cập nhật thông tin học sinh.');
+      } else {
+        students.push(student);
+        showToast('Đã thêm học sinh mới.');
+      }
+      saveData(); closeModal(); renderAll();
+    });
+
+    $('addStudentBtn').addEventListener('click', () => openModal());
+    $('closeModalBtn').addEventListener('click', closeModal);
+    $('cancelModalBtn').addEventListener('click', closeModal);
+    $('studentModal').addEventListener('click', (event) => { if (event.target === $('studentModal')) closeModal(); });
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeModal(); });
+    $('searchInput').addEventListener('input', renderTable);
+    $('classFilter').addEventListener('change', renderTable);
+    $('genderFilter').addEventListener('change', renderTable);
+
+    $('addClassBtn').addEventListener('click', () => {
+      const className = prompt('Nhập tên lớp mới (ví dụ: 10A3):');
+      if (className === null) return;
+      const normalized = className.trim().toUpperCase();
+      if (!normalized) { showToast('Tên lớp không được để trống.'); return; }
+      if (classes.some(c => c.toLocaleLowerCase() === normalized.toLocaleLowerCase())) { showToast('Lớp này đã tồn tại.'); return; }
+      classes.push(normalized); saveData(); renderAll(); showToast(`Đã thêm lớp ${normalized}.`);
+    });
+
+    $('exportBtn').addEventListener('click', () => {
+      const rows = getFilteredStudents();
+      if (!rows.length) { showToast('Không có dữ liệu để xuất.'); return; }
+      const headers = ['Mã học sinh','Họ và tên','Giới tính','Ngày sinh','Lớp','Số điện thoại','Địa chỉ','Ghi chú'];
+      const values = rows.map(s => [s.code,s.name,s.gender,formatDate(s.dob),s.className,s.phone,s.address,s.note]);
+      const csvCell = value => `"${String(value ?? '').replace(/"/g, '""')}"`;
+      const csv = '\uFEFF' + [headers, ...values].map(row => row.map(csvCell).join(',')).join('\r\n');
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a'); link.href = url; link.download = 'danh-sach-hoc-sinh.csv';
+      document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
+      showToast('Đã xuất danh sách học sinh ra file CSV.');
+    });
+
+    $('todayText').textContent = new Intl.DateTimeFormat('vi-VN', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric'}).format(new Date());
+    renderAll();
+  </script>
+</body>
+</html>
